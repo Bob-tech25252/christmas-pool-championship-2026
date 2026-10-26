@@ -1,68 +1,42 @@
-# Christmas Pool Championship 2026
+# Christmas Pool Championship 2026 — starter website
 
-A responsive static website starter for a family 8-ball pool tournament, with a public tournament board and an admin console.
+This package contains a remake of the starter site with Firebase browser-module imports:
+- `index.html` — public live tournament board
+- `admin.html` — Firebase email/password sign-in and admin controls
+- `tv.html` — 16:9-style TV display
+- `css/style.css` — dark pool-hall / green-felt design
+- `js/` — Firebase setup, Firestore data access, and tournament UI
 
-## Files
+## Before publishing
+1. Upload the files/folders in this ZIP into the root of `Bob-tech25252/christmas-pool-championship-2026`.
+2. In Firebase Authentication, enable **Email/Password** and make sure your admin user exists.
+3. In Firestore, confirm `/tournaments/christmas-2026` exists.
+4. Keep Firestore rules restricted to authenticated admin writes. The rules you configured earlier should permit reads and writes only for the admin UID.
+5. Enable GitHub Pages for the repository (Settings → Pages → deploy from the `main` branch and `/ (root)`).
+6. Test the public page, admin sign-in, and TV page after the deployment finishes.
 
-- `index.html` — public dashboard, player standings, bracket tabs, recent results, house rules.
-- `admin.html` — add/remove players, create opening matches, record winners, edit house rules, export/import JSON backups, reset.
-- `css/style.css` — responsive green, cream, and gold tournament design.
-- `js/storage.js` — browser-local demo storage.
-- `js/bracket.js` — basic match creation and result advancement.
-- `js/app.js` — public dashboard rendering.
-- `js/admin.js` — admin actions.
+## Security notes
+- Firebase web configuration is client-side configuration, not an admin password.
+- Do not commit service-account keys, passwords, or private credentials.
+- The admin UI signs in with Firebase Authentication. Firestore Rules—not hidden buttons—must enforce write access.
+- The existing rule setup expects the authorized UID to be `RXIIgRhTceMP7gckW1hrQC8Q2Yh1`. Confirm this matches the Firebase admin account before using it.
 
-## Run it locally
+## Tournament engine limitation
+The current engine uses a simple loss-count pairing queue to keep the starter understandable and editable. It is **not** a certified bracket generator and does not implement a strict seeded winners/losers bracket tree or a formal grand-final reset. Test it with dummy players before using it on tournament day. Replace `js/engine.js` if you need a formal bracket with deterministic round-by-round advancement.
 
-1. Extract the ZIP.
-2. Open the folder in VS Code.
-3. Use the **Live Server** extension to open `index.html`, or publish the folder with GitHub Pages.
-4. Open `admin.html` to manage the demo tournament.
+## Current data shape
+Firestore document: `tournaments/christmas-2026`
 
-## Important prototype limitations
+Expected fields include:
+- `name` (string)
+- `status` (`setup`, `in-progress`, `complete`)
+- `format` (`double-elimination`)
+- `game` (`8-ball`)
+- `gamesPerMatch` (number)
+- `players` (array of player objects)
+- `matches` (array of match objects)
+- `rules` (array of strings)
+- `currentMatchId`, `championId` (string or null)
 
-This is a working **front-end starter**, not a production-ready tournament system. Data is saved in the current browser's `localStorage`; it does not automatically synchronize to other devices or browsers. The admin page is not protected by a login. Anyone who can access the site can open `admin.html` and change data in their own browser.
-
-The included bracket engine is intentionally a starter implementation, not a complete tournament-management engine for every double-elimination edge case. In particular, the grand final/reset-final flow and all bracket placements should be tested and finalized before using it to run a real event. Review the bracket after each result and keep backups.
-
-## Before the live tournament: shared sync and real admin security
-
-GitHub Pages serves static files. For shared updates, connect a backend such as **Firebase Authentication + Cloud Firestore** or **Supabase**.
-
-Recommended Firebase approach:
-
-1. Create a Firebase project and a Firestore database.
-2. Enable Firebase Authentication (for example, email/password) and create the tournament admin account.
-3. Store tournament state in one Firestore document, or use a structured set of collections for players and matches.
-4. Add Firebase's web SDK and project configuration to the site.
-5. Require authentication for admin writes and enforce authorization in **Firestore Security Rules**. Do not rely on hiding `admin.html` or checking admin status only in JavaScript.
-6. Permit unauthenticated visitors to read only the public tournament data; deny public writes. Restrict writes to the verified admin UID(s).
-7. Test rules using Firebase's Rules Playground or Emulator before publishing.
-8. Do not put service-account keys or server secrets in GitHub Pages code.
-
-Illustrative rule pattern only — replace the placeholder UID and test against your actual document paths before deployment:
-
-```text
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /tournaments/christmas-2026 {
-      allow read: if true;
-      allow write: if request.auth != null
-                   && request.auth.uid == 'REPLACE_WITH_ADMIN_UID';
-    }
-  }
-}
-```
-
-## Publish in a new GitHub repository
-
-1. Create a **new, dedicated repository** named `christmas-pool-championship-2026` (or another name you prefer).
-2. Upload the contents of this folder to the repository root. `index.html` must be at the root for the default GitHub Pages landing page.
-3. In repository **Settings → Pages**, select **Deploy from a branch**, choose `main` and `/ (root)`, then save.
-4. Wait for the Pages deployment to finish and open the published URL.
-5. Do not use the live event until shared synchronization, admin authentication, and bracket logic have been completed and tested.
-
-## House rules
-
-The house-rule list starts blank on purpose. Enter the actual rules agreed by your family in Admin Console; this project does not assume or invent them.
+## Local testing
+Because the project uses JavaScript modules and Firebase, open it through GitHub Pages or a local static server rather than double-clicking an HTML file.
